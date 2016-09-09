@@ -1,0 +1,353 @@
+%YAML 1.2
+---
+name: SIMPL+
+file_extensions: [usp]
+scope: source.usp
+
+variables:
+  identifier: '\b[[:alpha:]_][[:alnum:]_]*\b'
+
+contexts:
+  main:
+    - include: comments
+    - include: compiler
+    - include: language
+    - include: functions
+
+  comments:
+    - match: /\/.*
+      scope: comment.line
+    - match: /\*
+      scope: comment.block
+      push:
+        - meta_scope: comment.block
+        - match: \*/
+          pop: true
+
+  compiler:
+    - include: compiler-imports
+    - include: compiler-help
+    - include: compiler-conditional-directives
+    - include: compiler-generic-directives
+    - include: compiler-string-directives
+    - include: compiler-integer-directives
+    - include: compiler-expand-directives
+    - include: compiler-define-constant
+
+  compiler-help:
+    - match: '(?i)#HELP_BEGIN(?-i)'
+      push:
+        - meta_scope: comment.block
+        - match: '(?i)#HELP_END(?-i)'
+          pop: true
+
+  compiler-generic-directives:
+    - match: (?i)^\s*(#(?:print_to_trace|enable_dynamic|enable_trace|enable_stack_checking|large_stack|default_nonvolatile|default_volatile)|_skip_)\b\s+(?-i)
+      scope: keyword.contorl.import.c
+
+  compiler-string-directives:
+    - match: (?i)^\s*(#(?:symbol_name|hint|help|category))\b\s+(?-i)
+      captures:
+        1: keyword.control.import.include.c
+      push:
+        - meta_scope: meta.preprocessor.include.c
+        - match: $\n
+          pop: true
+        - include: compiler-directive-comments
+        - match: '"'
+          scope: punctuation.definition.string.begin.c
+          push:
+            - meta_scope: string.quoted.double.include.c
+            - match: '"'
+              scope: punctuation.definition.string.end.c
+              pop: true
+
+  compiler-integer-directives:
+    - match: (?i)^\s*(#(?:output_shift|max_internal_buffer_size))\b\s+(?-i)
+      scope: keyword.control.import.include.c
+
+  compiler-expand-directives:
+    - match: (?i)^\s*(#(?:analog_serial_expand|digital_expand))\b\s+(?-i)
+      scope: keyword.control.import.include.c
+      push:
+        - meta_scope: meta.preprocessor.include.c
+        - match: $\n
+          pop: true
+        - match: (?i)(separately|outputswithparams|inputswithoutputs|inputswithparams|allwithany|pwithixoro)(?-i)
+          scope: storage.type.c
+
+  compiler-conditional-directives:
+    - match: (?i)^\s*(#(?:if_defined|if_not_defined|endif))\b\s+(?-i)
+      captures:
+        1: keyword.control.import.c
+
+
+  compiler-imports:
+    - match: (?i)^\s*(#(?:includepath|crestron_simplsharp_library|user_simplsharp_library|crestron_library|user_library))\b\s+(?-i)
+      captures:
+        1: keyword.control.import.include.c
+      push:
+        - meta_scope: meta.preprocessor.include.c
+        - match: $\n
+          pop: true
+        - include: compiler-directive-comments
+        - match: '"'
+          scope: punctuation.definition.string.begin.c
+          push:
+            - meta_scope: string.quoted.double.include.c
+            - match: '"'
+              scope: punctuation.definition.string.end.c
+              pop: true
+
+  compiler-directive-comments:
+    - match: /\*
+      scope: punctuation.definition.comment.c
+      push:
+        - meta_scope: comment.block.c
+        - match: '\\$\n'
+          scope: punctuation.separator.continuation.c
+        - match: \*/
+          scope: punctuation.definition.comment.c
+          pop: true
+    - match: //
+      scope: punctuation.definition.comment.c
+      push:
+        - meta_scope: comment.line.double-slash.c
+        - match: '(\\)$\n'
+          captures:
+            1: punctuation.separator.continuation.c
+          pop: true
+        - match: (?=\n)
+          pop: true
+
+  compiler-define-constant:
+    # #DEFINE_CONSTANT name value
+    - match: (?i)^\s*(#(?:define_constant))\b\s+(?-i)
+      scope: keyword.control.import.include.c
+      # push:
+      #   - meta_scope: meta.preprocessor.include.c
+      #   # - include: language-numbers
+      #   - match: $\n
+      #     pop: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  language:
+    - include: language-functions
+    - include: language-class-objects
+    - include: language-types
+    - include: language-keywords
+    - include: language-numbers
+    - include: language-strings
+    - include: language-operators
+    - include: language-logic
+    - include: language-structures
+
+  # Basic Properties
+  language-types:
+    # - include: language-types-functions
+    - include: language-types-modifiers
+    - match: (?i)\b(analog_input|analog_output|analog_c|ascii|buffer_input|digital_input|digital_output|inherit|integer|long_integer|volatile|nonvolatile|signed_integer|signed_long_integer|string|string_input|string_output|string_parameter|utf16)\b
+      scope: storage.type.c
+
+
+  language-types-modifiers:
+    - match: (?i)\b(volatile|nonvolatile|dynamic)\b
+      scope: storage.modifier.c
+
+  language-keywords:
+    - match: (?i)\b(if|else|switch|cswitch|continue|break|for|to|while|do|until|try|catch|return)\b
+      scope: keyword.control.c
+
+  language-numbers:
+    - match: '\b((0(x|X)[0-9a-fA-F]*(\.[0-9a-fA-F]+p-?\d+)?)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\b'
+      scope: constant.numeric.c
+
+  language-strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.c
+      push:
+        - meta_scope: string.quoted.double.c
+        - match: '"'
+          scope: punctuation.definition.string.end.c
+          pop: true
+        - include: language-string-escaped-char
+
+  language-string-escaped-char:
+    - match: '(\\)$\n'
+      captures:
+        1: punctuation.separator.continuation.c
+    - match: \\(?:\\|[abefnrtv\'"?]|[0-3][0-9]{0,2}|[4-7][0-9]?|x[a-fA-F0-9]+|u[a-fA-F0-9]{4}|U[a-fA-F0-9]{8})
+      scope: constant.character.escape.c
+    - match: \\.
+      scope: invalid.illegal.unknown-escape.c
+
+  language-operators:
+    - match: (?i)\b(\-|\*|/|S/|MOD|UMOD|%|<<|>>|\{\{|\}\}|NOT|\||\^|&)\b(?-i)
+      scope: keyword.operator.arithmetic.c
+    - match: (?i)\!|<>|<|>|<\=|>\=|S<|S>|S<\=|S>\=|&&|\|\|(?-i)
+      scope: keyword.operator.comparison.c
+    - match: \=
+      scope: keyword.operator.assignment.c
+
+  language-class-objects:
+    - match: (?i)\b(cevent|cmutex)\b(?-i)
+      scope: storage.class.c
+
+  # Built-in Functions
+  language-functions:
+    - include: language-functions-data-conversion
+    - include: language-functions-arrays
+    - include: language-functions-random-number
+    - include: language-functions-strings
+    - include: language-functions-system-control
+    - include: language-functions-system-interfacing
+    - include: language-functions-wait-events
+    - include: language-functions-math
+    - include: language-functions-events
+    - include: language-functions-string-formatting
+    - include: language-functions-bit
+    - include: language-functions-file
+    - include: language-functions-date-time
+    - include: language-functions-socket
+
+  language-functions-data-conversion:
+    - match: (?i)\b(atoi|atol|chr|hextoi|hextol|hextosi|hextosl|itoa|itoahex|ltoa|ltohex)\b
+      scope: keyword.control.c
+
+  language-functions-arrays:
+    - match: (?i)\b(getnumarraycols|getnumarrayrows|getnumstructurearraycols|resizearray|resizestructurearray|setarray)\b
+      scope: keyword.control.c
+
+  language-functions-random-number:
+    - match: (?i)\b(random|rnd|seed)\b
+      scope: keyword.control.c
+
+  language-functions-strings:
+    - match: (?i)\b(clearbuffer|comparestrings|comparestringsnocase|find|findnocase|gather|gatherbylength|getc|getencoding|left|len|lower|mid|remove|removebylength|resizestring|reversefind|reversefindnocase|right|setencoding|setstring|toascii|toutf16|upper)\b
+      scope: keyword.control.c
+
+  language-functions-system-control:
+    - match: (?i)\b(terminateevent|pulse|processlogic|delay|waitforinitializationcomplete)\b
+      scope: keyword.control.c
+
+  language-functions-system-interfacing:
+    - match: (?i)\b(getcip|getcresnet|getmodelnumber|getseries|getslot|getsymbolinstancename|getsymbolreferencename|issignaldefined|makeprogramfilename|sendcresnetpacket|sendpackettocpu|setcip|setcresnet|setslot)\b
+      scope: keyword.control.c
+
+  language-functions-wait-events:
+    - match: (?i)\b(cancelwait|cancelallwait|pausewait|resumeallwait|pauseallwait|wait|retimewait|resumewait)\b
+      scope: keyword.control.c
+
+  language-functions-math:
+    - match: (?i)\b(smin|smax|muldiv|min|max|abs)\b
+      scope: keyword.control.c
+
+  language-functions-events:
+    - match: (?i)\b(change|event|push|release|socketconnect|socketdisconnect|socketreceive|socketstatus|threadsafe)\b
+      scope: keyword.control.c
+
+  language-functions-string-formatting:
+    - match: (?i)\b(print|makestring|trace)\b
+      scope: keyword.control.c
+
+  language-functions-bit:
+    - match: (?i)\b(bit|byte|high|highword|low|lowword|lowerchar|upperchar|setbyte)\b
+      scope: keyword.control.c
+
+  language-functions-file:
+    - match: (?i)\b(checkfordisk|checkfornvramdisk|endoffileoperations|filebof|fileclose|filedelete|filedeleteshared|fileeof|filelength|fileopen|fileopenshared|fileread|fileseek|filewrite|findfirst|findclose|findfirstshared|findnext|getcurrentdirectory|isdirectory|ishidden|isreadonly|issystem|isvolume|isnull|makedirectory|makedirectoryshared|readinteger|readintegerarray|readlonginteger|readlongintegerarray|readsignedinteger|readsignedintegerarray|readsignedlonginteger|readsignedlongintegerarray|readstring|readstringarray|readstructure|removedirectoryshared|removedirectory|setcurrentdirectory|startfileoperations|waitfornewdisk|writeinteger|writeintegerarray|writelonginteger|writelongintegerarray|writesignedinteger|writesignedintegerarray|writesignedlonginteger|writesignedlongintegerarray|writestring|writestringarray|writestructure)\b
+      scope: keyword.control.c
+
+  language-functions-date-time:
+    - match: (?i)\b(date|day|filedate|fileday|filegetdatenum|filegetdayofweeknum|filegethournum|filegetminutesnum|filegetmonthnum|filegetsecondsnum|filegetyearnum|filemonth|filetime|getdatenum|getdayofweeknum|getdst|getgmtoffset|gethournum|gethseconds|getminutesnum|getmonthnum|getsecondsnum|getticks|getyearnum|month|setclock|setdate|setgmtoffset|time)\b
+      scope: keyword.control.c
+
+  language-functions-socket:
+    - match: (?i)\b(socketconnect|socketdisconnect|socketreceive|socketconnectclient|socketdisconnectclient|socketserverstartlisten|socketserverstoplisten|socketudp_enable|socketudp_disable|socketsend|socketstatus|socketgetstatus|socketgetportnumber|socketgetremoteipaddress|socketgetaddressasrequested|socketisbroadcast|socketismulticast|socketgetsenderipaddress)\b
+      scope: keyword.control.c
+
+  language-functions-email:
+    - match: (?i)\b(sendmailwithattachments|sendmail|sendmailadvance)\b
+      scope: keyword.control.c
+
+  language-functions-ramping:
+    - match: (?i)\b(createramp|stopramp|isramping|getrampinfo|comparerampsbyattribute|comparerampsbyid|initializerampinfo|initializerampinfoarray)\b
+      scope: keyword.control.c
+
+  language-functions-encoding:
+    - match: (?i)\b(getencoding|setencoding|toascii|toutf16)\b
+      scope: keyword.control.c
+
+  language-functions-exception-handling:
+    - match: (?i)\b(getexceptionmessage|getexceptioncode)\b
+      scope: keyword.control.c
+
+
+  # Structures
+  language-structures:
+    - match: (?i)\bstructure\b(?-i)
+      scope: storage.type.c
+      set: language-structures-definition
+
+  language-structures-definition:
+    - meta_scope: meta.struct.c
+    - include: language-structures-definition-common-begin
+    - match: '{{identifier}}(?=\s*;)'
+      scope: entity.name.struct.forward-decl.c
+    - match: '{{identifier}}'
+      scope: entity.name.struct.c
+    - match: '(?=;)'
+      pop: true
+    - match: '\{'
+      scope: meta.block.c punctuation.section.block.begin.c
+      set:
+        - meta_content_scope: meta.struct.c meta.block.c
+        - match: '\}'
+          scope: meta.struct.c meta.block.c punctuation.section.block.end.c
+          pop: true
+        - include: language-structures-body
+
+  language-structures-definition-common-begin:
+    - include: comments
+    - include: modifiers-parens
+    - include: modifiers
+    # Handle macros so they aren't matched as the class name
+    - match: '\b[[:upper:][:digit:]_]+\b'
+
+  language-structures-definition-common-end:
+    - match: '(?=;)'
+      pop: true
+
+  language-structures-body:
+    - include: preprocessor-data-structures
+    - match: (?i)(?=structure)(?-i)
+      push: language-structures
+    - include: language-types
+
+  # Functions
+  functions:
+    - match: (?i)\b(function|integer_function|long_integer_function|signed_integer_function|signed_long_integer_function|string_function)\s+({{identifier}})\b
+      captures:
+        1: storage.type.c
+        2: entity.name.function.c
+
+
