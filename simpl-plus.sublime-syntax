@@ -342,6 +342,7 @@ contexts:
     - match: (?i)(?=structure)(?-i)
       push: language-structures
     - include: language-types
+    - include: comments
 
   # Functions
   functions:
