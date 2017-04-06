@@ -15,9 +15,9 @@ contexts:
     - include: functions
 
   comments:
-    - match: /\/.*
+    - match: \/\/.*$
       scope: comment.line
-    - match: /\*
+    - match: \/\*
       scope: comment.block
       push:
         - meta_scope: comment.block
@@ -130,26 +130,6 @@ contexts:
       #   - match: $\n
       #     pop: true
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   language:
     - include: language-functions
     - include: language-class-objects
@@ -165,7 +145,7 @@ contexts:
   language-types:
     # - include: language-types-functions
     - include: language-types-modifiers
-    - match: (?i)\b(analog_input|analog_output|analog_c|ascii|buffer_input|digital_input|digital_output|inherit|integer|long_integer|volatile|nonvolatile|signed_integer|signed_long_integer|string|string_input|string_output|string_parameter|utf16)\b
+    - match: (?i)\b(analog_input|analog_output|analog_c|ascii|buffer_input|digital_input|digital_output|inherit|integer|integer_parameter|long_integer|volatile|nonvolatile|signed_integer|signed_long_integer|string|string_input|string_output|string_parameter|utf16)\b
       scope: storage.type.c
 
 
@@ -174,7 +154,7 @@ contexts:
       scope: storage.modifier.c
 
   language-keywords:
-    - match: (?i)\b(if|else|switch|cswitch|continue|break|for|to|while|do|until|try|catch|return)\b
+    - match: (?i)\b(if|else|switch|cswitch|case|default|continue|break|for|to|while|do|until|try|catch|return)\b
       scope: keyword.control.c
 
   language-numbers:
@@ -201,7 +181,7 @@ contexts:
       scope: invalid.illegal.unknown-escape.c
 
   language-operators:
-    - match: (?i)\b(\-|\*|/|S/|MOD|UMOD|%|<<|>>|\{\{|\}\}|NOT|\||\^|&)\b(?-i)
+    - match: (?i)\b(-|!|NOT|\*|/|S/|%|MOD|UMOD|+|-|\{\{|\}\}|<<|>>|&|\^|\||&&|\|\|)\b(?-i)
       scope: keyword.operator.arithmetic.c
     - match: (?i)\!|<>|<|>|<\=|>\=|S<|S>|S<\=|S>\=|&&|\|\|(?-i)
       scope: keyword.operator.comparison.c
@@ -234,7 +214,7 @@ contexts:
       scope: keyword.control.c
 
   language-functions-arrays:
-    - match: (?i)\b(getnumarraycols|getnumarrayrows|getnumstructurearraycols|resizearray|resizestructurearray|setarray)\b
+    - match: (?i)\b(getlastmodifiedarrayindex|getnumarraycols|getnumarrayrows|getnumstructurearraycols|resizearray|resizestructurearray|setarray)\b
       scope: keyword.control.c
 
   language-functions-random-number:
@@ -250,7 +230,7 @@ contexts:
       scope: keyword.control.c
 
   language-functions-system-interfacing:
-    - match: (?i)\b(getcip|getcresnet|getmodelnumber|getseries|getslot|getsymbolinstancename|getsymbolreferencename|issignaldefined|makeprogramfilename|sendcresnetpacket|sendpackettocpu|setcip|setcresnet|setslot)\b
+    - match: (?i)\b(generateusererror|generateusernotice|generateuserwarning|getcip|getcresnet|getmodelnumber|getseries|getslot|getsymbolinstancename|getsymbolreferencename|issignaldefined|makeprogramfilename|sendcresnetpacket|sendpackettocpu|setcip|setcresnet|setslot)\b
       scope: keyword.control.c
 
   language-functions-wait-events:
@@ -274,7 +254,7 @@ contexts:
       scope: keyword.control.c
 
   language-functions-file:
-    - match: (?i)\b(checkfordisk|checkfornvramdisk|endoffileoperations|filebof|fileclose|filedelete|filedeleteshared|fileeof|filelength|fileopen|fileopenshared|fileread|fileseek|filewrite|findfirst|findclose|findfirstshared|findnext|getcurrentdirectory|isdirectory|ishidden|isreadonly|issystem|isvolume|isnull|makedirectory|makedirectoryshared|readinteger|readintegerarray|readlonginteger|readlongintegerarray|readsignedinteger|readsignedintegerarray|readsignedlonginteger|readsignedlongintegerarray|readstring|readstringarray|readstructure|removedirectoryshared|removedirectory|setcurrentdirectory|startfileoperations|waitfornewdisk|writeinteger|writeintegerarray|writelonginteger|writelongintegerarray|writesignedinteger|writesignedintegerarray|writesignedlonginteger|writesignedlongintegerarray|writestring|writestringarray|writestructure)\b
+    - match: (?i)\b(checkfordisk|checkfornvramdisk|endfileoperations|filebof|fileclose|filedelete|filedeleteshared|fileeof|filelength|fileopen|fileopenshared|fileread|fileseek|filewrite|findfirst|findclose|findfirstshared|findnext|getcurrentdirectory|isdirectory|ishidden|isreadonly|issystem|isvolume|isnull|makedirectory|makedirectoryshared|readinteger|readintegerarray|readlonginteger|readlongintegerarray|readsignedinteger|readsignedintegerarray|readsignedlonginteger|readsignedlongintegerarray|readstring|readstringarray|readstructure|removedirectoryshared|removedirectory|setcurrentdirectory|startfileoperations|waitfornewdisk|writeinteger|writeintegerarray|writelonginteger|writelongintegerarray|writesignedinteger|writesignedintegerarray|writesignedlonginteger|writesignedlongintegerarray|writestring|writestringarray|writestructure)\b
       scope: keyword.control.c
 
   language-functions-date-time:
@@ -350,5 +330,3 @@ contexts:
       captures:
         1: storage.type.c
         2: entity.name.function.c
-
-
